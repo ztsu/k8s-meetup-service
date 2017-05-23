@@ -6,22 +6,14 @@ import (
 	"github.com/pressly/chi/middleware"
 	"context"
 	"os"
-	"gopkg.in/op/go-logging.v1"
-)
-
-var (
-	logger *logging.Logger
+	"github.com/apex/log"
+	"github.com/apex/log/handlers/cli"
 )
 
 func init () {
-	logging.SetBackend(
-		logging.NewBackendFormatter(
-			logging.NewLogBackend(os.Stderr, "", 0),
-			logging.MustStringFormatter("%{color}[%{time:2006-01-02 15:04:05}] %{shortfile} ▶ %{level:.4s} %{id:03x}%{color:reset} %{message}"),
-		),
-	)
+	//
 
-	logger = logging.MustGetLogger("")
+	log.SetHandler(cli.New(os.Stderr))
 }
 
 func handler(w http.ResponseWriter, r *http.Request) {
@@ -47,7 +39,7 @@ func mv(next http.Handler) http.Handler {
 func main() {
 	hostAndPort := os.Getenv("SERVICE_HOST_AND_PORT")
 	if hostAndPort == "" {
-		logger.Fatal("SERVICE_HOST_AND_PORT env var is empty")
+		log.Fatal("SERVICE_HOST_AND_PORT env var is empty")
 		return
 	}
 
@@ -56,7 +48,10 @@ func main() {
 	r.Use(mv)
 	r.Get("/", handler)
 
-	logger.Info("Running at " + hostAndPort)
+	log.Infof("Running at %s", hostAndPort)
 
-	http.ListenAndServe(hostAndPort, r)
+	err := http.ListenAndServe(hostAndPort, r)
+	if err != nil {
+		log.WithError(err).Fatal("Can not start service")
+	}
 }

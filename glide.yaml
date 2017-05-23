@@ -4,6 +4,9 @@ import:
   version: ^2.1.0
   subpackages:
   - middleware
+- package: github.com/apex/log
+  subpackages:
+  - handlers/cli
 testImport:
 - package: github.com/stretchr/testify
   version: ^1.1.4
